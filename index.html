@@ -1,0 +1,136 @@
+<!-- index.html: Interface responsiva com Firebase para admin/visitante -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Estacionamento</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h2 { margin: 20px 0 10px; }
+    #contador { margin-bottom: 10px; font-weight: bold; }
+    .wrapper {
+      width: 100%;
+      max-width: 900px;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+    }
+    #estacionamento {
+      position: relative;
+      width: 100%;
+      padding-top: 100%;
+      background-image: url('estacionamento_800x800.png');
+      background-size: cover;
+      background-position: center;
+      border: 2px solid #333;
+    }
+    .vaga {
+      position: absolute;
+      width: 5%;
+      height: 2.5%;
+      background-color: rgba(0, 200, 0, 0.5);
+      border: 1px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7vw;
+      color: #000;
+      cursor: pointer;
+      user-select: none;
+      transform-origin: center center;
+    }
+    .vaga.ocupada {
+      background-color: rgba(200, 0, 0, 0.7);
+    }
+    @media (max-width: 600px) {
+      .vaga { font-size: 2.5vw; }
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_DOMINIO.firebaseapp.com",
+      projectId: "SEU_PROJETO",
+      storageBucket: "SEU_BUCKET",
+      messagingSenderId: "SENDER_ID",
+      appId: "SEU_APP_ID",
+      databaseURL: "https://SEU_PROJETO.firebaseio.com"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    const estacionamentoRef = ref(db, 'vagas');
+    const container = document.getElementById('estacionamento');
+    const contador = document.getElementById('contador');
+    let isAdmin = false;
+
+    function atualizarContador(vagas) {
+      const total = Object.keys(vagas).length;
+      const ocupadas = Object.values(vagas).filter(v => v.ocupada).length;
+      contador.textContent = `Total: ${total} | Ocupadas: ${ocupadas} | Livres: ${total - ocupadas}`;
+    }
+
+    function renderVagas(vagas) {
+      container.innerHTML = '';
+      for (const id in vagas) {
+        const v = vagas[id];
+        const div = document.createElement('div');
+        div.className = 'vaga';
+        div.style.top = v.top + '%';
+        div.style.left = v.left + '%';
+        div.style.transform = `rotate(${v.rotate}deg)`;
+        div.textContent = id;
+        if (v.ocupada) div.classList.add('ocupada');
+
+        if (isAdmin) {
+          div.addEventListener('click', () => {
+            update(ref(db, 'vagas/' + id), { ocupada: !v.ocupada });
+          });
+        }
+
+        container.appendChild(div);
+      }
+      atualizarContador(vagas);
+    }
+
+    onValue(estacionamentoRef, snapshot => {
+      const data = snapshot.val();
+      if (data) renderVagas(data);
+    });
+
+    // LOGIN SIMPLES (para administrador)
+    const email = prompt("E-mail do administrador (pressione cancelar para modo visitante):");
+    if (email) {
+      const senha = prompt("Senha:");
+      signInWithEmailAndPassword(auth, email, senha)
+        .then(() => {
+          isAdmin = true;
+          alert("Modo administrador ativado");
+        })
+        .catch(() => alert("Falha ao autenticar. Continuando como visitante."));
+    }
+  </script>
+</head>
+<body>
+  <h2>Gerenciador de Estacionamento</h2>
+  <div id="contador">Carregando...</div>
+  <div class="wrapper">
+    <div id="estacionamento"></div>
+  </div>
+</body>
+</html>
