@@ -1,4 +1,4 @@
-<!-- index.html: Interface responsiva com Firebase para admin/visitante -->
+<!-- index.html: Interface com login, admin, visitante e botão de importação de vagas -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -54,10 +54,22 @@
     @media (max-width: 600px) {
       .vaga { font-size: 2.5vw; }
     }
+    #loginForm {
+      margin: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    input, button {
+      padding: 6px;
+      font-size: 14px;
+    }
+    #logoutBtn, #importBtn {
+      margin-bottom: 10px;
+    }
   </style>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -77,6 +89,12 @@
     const estacionamentoRef = ref(db, 'vagas');
     const container = document.getElementById('estacionamento');
     const contador = document.getElementById('contador');
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const senhaInput = document.getElementById('senha');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const importBtn = document.getElementById('importBtn');
     let isAdmin = false;
 
     function atualizarContador(vagas) {
@@ -113,21 +131,51 @@
       if (data) renderVagas(data);
     });
 
-    // LOGIN SIMPLES (para administrador)
-    const email = prompt("E-mail do administrador (pressione cancelar para modo visitante):");
-    if (email) {
-      const senha = prompt("Senha:");
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        isAdmin = true;
+        loginForm.style.display = 'none';
+        logoutBtn.style.display = 'inline-block';
+        importBtn.style.display = 'inline-block';
+      } else {
+        isAdmin = false;
+        loginForm.style.display = 'flex';
+        logoutBtn.style.display = 'none';
+        importBtn.style.display = 'none';
+      }
+    });
+
+    loginBtn.onclick = () => {
+      const email = emailInput.value;
+      const senha = senhaInput.value;
       signInWithEmailAndPassword(auth, email, senha)
-        .then(() => {
-          isAdmin = true;
-          alert("Modo administrador ativado");
-        })
-        .catch(() => alert("Falha ao autenticar. Continuando como visitante."));
-    }
+        .catch(() => alert("Erro ao autenticar"));
+    };
+
+    logoutBtn.onclick = () => {
+      signOut(auth);
+    };
+
+    importBtn.onclick = () => {
+      if (!confirm("Tem certeza que deseja importar as 63 vagas e sobrescrever os dados atuais?")) return;
+      const vagas = {};
+      for (let i = 1; i <= 63; i++) {
+        const id = 'V' + i.toString().padStart(2, '0');
+        vagas[id] = { top: 10 + i, left: 10 + i, ocupada: false, rotate: 0 }; // Você pode substituir por os dados reais
+      }
+      set(estacionamentoRef, vagas).then(() => alert("✅ Vagas importadas com sucesso."));
+    };
   </script>
 </head>
 <body>
   <h2>Gerenciador de Estacionamento</h2>
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="Email administrador" required />
+    <input type="password" id="senha" placeholder="Senha" required />
+    <button type="button" id="loginBtn">Entrar</button>
+  </form>
+  <button id="logoutBtn" style="display: none;">Sair</button>
+  <button id="importBtn" style="display: none;">Importar Vagas</button>
   <div id="contador">Carregando...</div>
   <div class="wrapper">
     <div id="estacionamento"></div>
