@@ -72,16 +72,15 @@
     import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDvgoGXBnFZbXi28SuSnQlx8mIN6Ebsflk",
-  authDomain: "estacionamentosmamus.firebaseapp.com",
-  databaseURL: "https://estacionamentosmamus-default-rtdb.firebaseio.com",
-  projectId: "estacionamentosmamus",
-  storageBucket: "estacionamentosmamus.firebasestorage.app",
-  messagingSenderId: "864410096092",
-  appId: "1:864410096092:web:c8f039da393d4130bb7f19",
-  measurementId: "G-C8M7BEK2ZR"
-};
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_DOMINIO.firebaseapp.com",
+      projectId: "SEU_PROJETO",
+      storageBucket: "SEU_BUCKET",
+      messagingSenderId: "SENDER_ID",
+      appId: "SEU_APP_ID",
+      databaseURL: "https://SEU_PROJETO.firebaseio.com"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
@@ -97,6 +96,73 @@ const firebaseConfig = {
     const logoutBtn = document.getElementById('logoutBtn');
     const importBtn = document.getElementById('importBtn');
     let isAdmin = false;
+
+    // Dados fixos das 63 vagas
+    const vagasFixas = {
+      V01: { top: 7.1, left: 46.5, ocupada: false, rotate: 15 },
+      V02: { top: 12.1, left: 49.4, ocupada: false, rotate: 15 },
+      V03: { top: 16.5, left: 51.4, ocupada: false, rotate: 15 },
+      V04: { top: 21.4, left: 54.2, ocupada: false, rotate: 15 },
+      V05: { top: 42.5, left: 64.4, ocupada: false, rotate: 60 },
+      V06: { top: 51.4, left: 73.2, ocupada: false, rotate: -30 },
+      V07: { top: 55.4, left: 75.2, ocupada: false, rotate: -30 },
+      V08: { top: 58.5, left: 77.1, ocupada: false, rotate: -30 },
+      V09: { top: 61.8, left: 79, ocupada: false, rotate: -30 },
+      V10: { top: 64.9, left: 80.8, ocupada: false, rotate: -30 },
+      V11: { top: 68.4, left: 82.2, ocupada: false, rotate: -30 },
+      V12: { top: 71.8, left: 83.9, ocupada: false, rotate: -30 },
+      V13: { top: 75.1, left: 85.5, ocupada: false, rotate: -30 },
+      V14: { top: 78.4, left: 87.5, ocupada: false, rotate: -30 },
+      V15: { top: 22.6, left: 40.4, ocupada: false, rotate: -75 },
+      V16: { top: 27.2, left: 42.8, ocupada: false, rotate: -75 },
+      V17: { top: 32.5, left: 45.1, ocupada: false, rotate: -75 },
+      V18: { top: 36.5, left: 47.8, ocupada: false, rotate: -75 },
+      V19: { top: 41.1, left: 50.5, ocupada: false, rotate: -75 },
+      V20: { top: 46.1, left: 52.8, ocupada: false, rotate: -75 },
+      V21: { top: 51.0, left: 55.5, ocupada: false, rotate: -75 },
+      V22: { top: 55.5, left: 58, ocupada: false, rotate: -75 },
+      V23: { top: 60.8, left: 60.2, ocupada: false, rotate: -75 },
+      V24: { top: 64.8, left: 62.9, ocupada: false, rotate: -75 },
+      V25: { top: 69.6, left: 65.2, ocupada: false, rotate: -75 },
+      V26: { top: 74.3, left: 68, ocupada: false, rotate: -75 },
+      V27: { top: 79.3, left: 70.6, ocupada: false, rotate: -75 },
+      V28: { top: 85.4, left: 74.5, ocupada: false, rotate: -30 },
+      V29: { top: 36.5, left: 33.1, ocupada: false, rotate: 15 },
+      V30: { top: 41.8, left: 36, ocupada: false, rotate: 15 },
+      V31: { top: 46.4, left: 38.4, ocupada: false, rotate: 15 },
+      V32: { top: 51.4, left: 41.1, ocupada: false, rotate: 15 },
+      V33: { top: 56.1, left: 43.8, ocupada: false, rotate: 15 },
+      V34: { top: 60.6, left: 46.3, ocupada: false, rotate: 15 },
+      V35: { top: 65.4, left: 48.4, ocupada: false, rotate: 15 },
+      V36: { top: 70.0, left: 51.5, ocupada: false, rotate: 15 },
+      V37: { top: 74.9, left: 53.9, ocupada: false, rotate: 15 },
+      V38: { top: 79.5, left: 56.3, ocupada: false, rotate: 15 },
+      V39: { top: 33.2, left: 14.5, ocupada: false, rotate: -30 },
+      V40: { top: 36.3, left: 16, ocupada: false, rotate: -30 },
+      V41: { top: 40.0, left: 17.6, ocupada: false, rotate: -30 },
+      V42: { top: 43.3, left: 19.6, ocupada: false, rotate: -30 },
+      V43: { top: 46.6, left: 21.6, ocupada: false, rotate: -30 },
+      V44: { top: 49.8, left: 23.1, ocupada: false, rotate: -30 },
+      V45: { top: 53.1, left: 24.6, ocupada: false, rotate: -30 },
+      V46: { top: 56.4, left: 26.2, ocupada: false, rotate: -30 },
+      V47: { top: 59.8, left: 28.5, ocupada: false, rotate: -30 },
+      V48: { top: 63.1, left: 30.5, ocupada: false, rotate: -30 },
+      V49: { top: 66.1, left: 31.9, ocupada: false, rotate: -30 },
+      V50: { top: 69.4, left: 34.0, ocupada: false, rotate: -30 },
+      V51: { top: 72.8, left: 35.9, ocupada: false, rotate: -30 },
+      V52: { top: 76.0, left: 37.5, ocupada: false, rotate: -30 },
+      V53: { top: 79.5, left: 39.3, ocupada: false, rotate: -30 },
+      V54: { top: 83.3, left: 41.0, ocupada: false, rotate: -30 },
+      V55: { top: 86.6, left: 42.5, ocupada: false, rotate: -30 },
+      V56: { top: 89.9, left: 44.5, ocupada: false, rotate: -30 },
+      V57: { top: 93.5, left: 46.1, ocupada: false, rotate: -30 },
+      V58: { top: 39.6, left: 28.2, ocupada: false, rotate: 60 },
+      V59: { top: 47.1, left: 32.6, ocupada: false, rotate: 60 },
+      V60: { top: 54.5, left: 36.4, ocupada: false, rotate: 60 },
+      V61: { top: 62.5, left: 41.3, ocupada: false, rotate: 60 },
+      V62: { top: 70.8, left: 45.1, ocupada: false, rotate: 60 },
+      V63: { top: 79.3, left: 49.6, ocupada: false, rotate: 60 }
+    };
 
     function atualizarContador(vagas) {
       const total = Object.keys(vagas).length;
@@ -162,7 +228,7 @@ const firebaseConfig = {
       const vagas = {};
       for (let i = 1; i <= 63; i++) {
         const id = 'V' + i.toString().padStart(2, '0');
-        vagas[id] = { top: 10 + i, left: 10 + i, ocupada: false, rotate: 0 }; // Você pode substituir por os dados reais
+        vagas[id] = vagasFixas[id]; // Você pode substituir por os dados reais
       }
       set(estacionamentoRef, vagas).then(() => alert("✅ Vagas importadas com sucesso."));
     };
